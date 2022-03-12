@@ -1,4 +1,5 @@
 from datetime import datetime
+from genericpath import isfile
 from json.tool import main
 import os
 import re
@@ -17,18 +18,36 @@ import zipfile
 
 INPUT_FILE = "input.txt"
 
-def zipdir(path, ziph):
+def ZipDir(path, ziph):
     for root, dirs, files in os.walk(path):
         for file in files:
             ziph.write(os.path.join(root, file))
 
 
+def MakeZip(name, source, destination):
+    
+    now = datetime.now()
+    curDate = now.strftime("%d%m%Y_%H%M")    
+    zipf = ZipFile(f"{destination}\{name}_{curDate}.zip", 'w', zipfile.ZIP_DEFLATED)
+
+    scriptDir = os.path.dirname(os.path.realpath(__file__))
+    os.chdir(scriptDir)
+    
+    if(os.path.isdir(source)):      #archive dir
+        ZipDir(source, zipf)    
+        print(f"Made backup for directory {name}")
+        zipf.close()
+    elif(os.path.isfile(source)):   #archive file
+        os.chdir(os.path.dirname(source))
+        zipf.write(os.path.basename(source))
+        print(f"Made backup for file {name}")    
+        zipf.close()
+    else:                           #if nothing was found
+        os.remove(f"{destination}\{name}_{curDate}.zip")    
+
+
 if __name__ == '__main__':
     f = open(INPUT_FILE, 'r')
-    now = datetime.now()
-    print(chr(27) + "[2J")
-
-    curDate = now.strftime("%d%m%Y_%H%M")
 
     for line in f.readlines():
         if("#" not in line):
@@ -38,7 +57,6 @@ if __name__ == '__main__':
             source = line.split(";")[1]
             destination = line.split(";")[2].replace(r"\n","")
 
-            zipf = ZipFile(f"{destination}\{name}_{curDate}.zip", 'w', zipfile.ZIP_DEFLATED)
-            zipdir(source, zipf)
-            zipf.close()
-            print(f"Made backup for {name}")
+            MakeZip(name, source, destination)
+    
+    input("\nPlease press Enter for continue...")
