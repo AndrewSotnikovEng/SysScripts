@@ -69,6 +69,10 @@ def doRegularAction():
     processed = 0
     curPosition = 0
     
+    if (len(getDupicates(True)) > 0):
+        print("\nThere is duplicates, please process them first via\n \n \treduce_video_size.py --remove-duplicates")
+        return 
+    
     filesToProcess = getFilesToProcess()
     print(filesToProcess)
     for file in filesToProcess:                   
